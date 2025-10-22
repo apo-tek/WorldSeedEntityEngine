@@ -1,0 +1,141 @@
+package net.worldseed.multipart;
+
+import com.google.gson.*;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomModelData;
+import net.worldseed.utils.Point;
+import net.worldseed.utils.Pos;
+import net.worldseed.utils.Vec;
+import net.worldseed.multipart.model_bones.BoneEntity;
+import net.worldseed.multipart.events.ModelControlEvent;
+import net.worldseed.multipart.mql.MQLPoint;
+import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.NonNull;
+
+import javax.json.JsonNumber;
+import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+
+public class ModelEngine {
+    public final static HashMap<String, Point> offsetMappings = new HashMap<>();
+    public final static HashMap<String, Point> diffMappings = new HashMap<>();
+    static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    private final static HashMap<String, HashMap<String, ItemStack>> blockMappings = new HashMap<>();
+    private static final EventListener<@NonNull PlayerPacketEvent> playerListener = EventListener.of(PlayerPacketEvent.class, event -> {
+        if (event.getPacket() instanceof ClientInputPacket packet) {
+            Entity ridingEntity = event.getPlayer().getVehicle();
+
+            if (ridingEntity instanceof BoneEntity bone) {
+                EventDispatcher.call(new ModelControlEvent(bone.getModel(), packet));
+            }
+        }
+    });
+    private static final EventListener<@NonNull PlayerEntityInteractEvent> playerInteractListener = EventListener.of(PlayerEntityInteractEvent.class, event -> {
+        if (event.getTarget() instanceof BoneEntity bone) {
+            ModelInteractEvent modelInteractEvent = new ModelInteractEvent(bone.getModel(), event, bone);
+            EventDispatcher.call(modelInteractEvent);
+        }
+    });
+    private static final EventListener<@NonNull EntityDamageEvent> entityDamageListener = EventListener.of(EntityDamageEvent.class, event -> {
+        if (event.getEntity() instanceof BoneEntity bone) {
+            event.setCancelled(true);
+            ModelDamageEvent modelDamageEvent = new ModelDamageEvent(bone.getModel(), event, bone);
+            MinecraftServer.getGlobalEventHandler().call(modelDamageEvent);
+        }
+    });
+    private static Path modelPath;
+    private static Material modelMaterial = Material.MAGMA_CREAM;
+
+    /**
+     * Loads the model from the given path. Assumes the server is already initialized.
+     *
+     * @param mappingsData mappings file created by model parser
+     * @param modelPath    path of the models
+     */
+    public static void loadMappings(Reader mappingsData, Path modelPath) {
+        MinecraftServer.getGlobalEventHandler()
+                .addListener(playerListener)
+                .addListener(playerInteractListener)
+                .addListener(entityDamageListener);
+
+        JsonObject map = GSON.fromJson(mappingsData, JsonObject.class);
+        ModelEngine.modelPath = modelPath;
+
+        blockMappings.clear();
+        offsetMappings.clear();
+        diffMappings.clear();
+        ModelLoader.clearCache();
+
+        map.entrySet().forEach(entry -> {
+            HashMap<String, ItemStack> keys = new HashMap<>();
+
+            entry.getValue().getAsJsonObject()
+                    .get("id")
+                    .getAsJsonObject()
+                    .entrySet()
+                    .forEach(id -> keys.put(id.getKey(), generateBoneItem(id.getValue().getAsFloat())));
+
+            blockMappings.put(entry.getKey(), keys);
+            offsetMappings.put(entry.getKey(), getPos(entry.getValue().getAsJsonObject().get("offset").getAsJsonArray()).orElse(Pos.ZERO));
+            diffMappings.put(entry.getKey(), getPos(entry.getValue().getAsJsonObject().get("diff").getAsJsonArray()).orElse(Pos.ZERO));
+        });
+    }
+
+    private static ItemStack generateBoneItem(float model_id) {
+        return ItemStack.builder(modelMaterial).set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(
+                List.of(model_id),
+                List.of(),
+                List.of(),
+                List.of()
+        )).build();
+    }
+
+    public static HashMap<String, ItemStack> getItems(String model, String name) {
+        return blockMappings.get(model + "/" + name);
+    }
+
+    public static Path getGeoPath(String id) {
+        return modelPath.resolve(id).resolve("model.geo.json");
+    }
+
+    public static Path getAnimationPath(String id) {
+        return modelPath.resolve(id).resolve("model.animation.json");
+    }
+
+    public static Optional<Point> getPos(JsonElement pivot) {
+        if (pivot == null) return Optional.empty();
+        else {
+            JsonArray arr = pivot.getAsJsonArray();
+            return Optional.of(new Vec(arr.get(0).getAsDouble(), arr.get(1).getAsDouble(), arr.get(2).getAsDouble()));
+        }
+    }
+
+    public static Optional<MQLPoint> getMQLPos(JsonElement pivot) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return switch (pivot) {
+            case JsonObject obj -> Optional.of(new MQLPoint(obj));
+            case JsonNumber num -> Optional.of(new MQLPoint(num.doubleValue(), num.doubleValue(), num.doubleValue()));
+            case null, default -> Optional.empty();
+        };
+    }
+
+    public static Material getModelMaterial() {
+        return modelMaterial;
+    }
+
+    public static void setModelMaterial(Material modelMaterial) {
+        ModelEngine.modelMaterial = modelMaterial;
+    }
+
+    public static Optional<MQLPoint> getMQLPos(JsonArray arr) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (arr == null) return Optional.empty();
+        else {
+            return Optional.of(new MQLPoint(arr));
+        }
+    }
+}

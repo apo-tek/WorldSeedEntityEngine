@@ -1,0 +1,284 @@
+package net.worldseed.utils;
+
+import org.jetbrains.annotations.Contract;
+
+import java.util.function.DoubleUnaryOperator;
+
+import static net.worldseed.utils.CoordConversion.SECTION_SIZE;
+import static net.worldseed.utils.CoordConversion.globalToBlock;
+
+/**
+ * Represents an immutable block position.
+ * <p>
+ * Usage note: If you accept a block position as an argument to a method,
+ * it's usually better to accept a Point rather than a BlockVec to avoid
+ * callers continually having to convert.
+ */
+public record BlockVec(int blockX, int blockY, int blockZ) implements Point {
+    public static final BlockVec ZERO = new BlockVec(0);
+    public static final BlockVec ONE = new BlockVec(1);
+    public static final BlockVec SECTION = new BlockVec(SECTION_SIZE);
+
+    public BlockVec(double x, double y, double z) {
+        this(globalToBlock(x), globalToBlock(y), globalToBlock(z));
+    }
+
+    public BlockVec(Point point) {
+        this(point.blockX(), point.blockY(), point.blockZ());
+    }
+
+    public BlockVec(int value) {
+        this(value, value, value);
+    }
+
+    public BlockVec(double value) {
+        this(value, value, value);
+    }
+
+    @Override
+    public double x() {
+        return blockX;
+    }
+
+    @Override
+    public double y() {
+        return blockY;
+    }
+
+    @Override
+    public double z() {
+        return blockZ;
+    }
+
+    @Override
+    public Point withX(DoubleUnaryOperator operator) {
+        return new Vec(operator.applyAsDouble(blockX), blockY, blockZ);
+    }
+
+    @Override
+    public Point withX(double x) {
+        return new Vec(x, blockY, blockZ);
+    }
+
+    @Contract(pure = true)
+    public BlockVec withBlockX(int x) {
+        return new BlockVec(x, blockY, blockZ);
+    }
+
+    @Override
+    public Point withY(DoubleUnaryOperator operator) {
+        return new Vec(blockX, operator.applyAsDouble(blockY), blockZ);
+    }
+
+    @Override
+    public Point withY(double y) {
+        return new Vec(blockX, y, blockZ);
+    }
+
+    @Contract(pure = true)
+    public BlockVec withBlockY(int y) {
+        return new BlockVec(blockX, y, blockZ);
+    }
+
+    @Override
+    public Point withZ(DoubleUnaryOperator operator) {
+        return new Vec(blockX, blockY, operator.applyAsDouble(blockZ));
+    }
+
+    @Override
+    public Point withZ(double z) {
+        return new Vec(blockX, blockY, z);
+    }
+
+    @Contract(pure = true)
+    public BlockVec withBlockZ(int z) {
+        return new BlockVec(blockX, blockY, z);
+    }
+
+    @Override
+    public Point add(double x, double y, double z) {
+        return new Vec(blockX + x, blockY + y, blockZ + z);
+    }
+
+    @Contract(pure = true)
+    public BlockVec add(int x, int y, int z) {
+        return new BlockVec(blockX + x, blockY + y, blockZ + z);
+    }
+
+    @Override
+    public Point add(Point point) {
+        return new Vec(blockX + point.x(), blockY + point.y(), blockZ + point.z());
+    }
+
+    @Contract(pure = true)
+    public BlockVec add(BlockVec blockVec) {
+        return new BlockVec(blockX + blockVec.blockX, blockY + blockVec.blockY, blockZ + blockVec.blockZ);
+    }
+
+    @Override
+    public Point add(double value) {
+        return add(value, value, value);
+    }
+
+    @Contract(pure = true)
+    public BlockVec add(int value) {
+        return new BlockVec(blockX + value, blockY + value, blockZ + value);
+    }
+
+    @Override
+    public Point sub(double x, double y, double z) {
+        return new Vec(blockX - x, blockY - y, blockZ - z);
+    }
+
+    @Contract(pure = true)
+    public BlockVec sub(int x, int y, int z) {
+        return new BlockVec(blockX - x, blockY - y, blockZ - z);
+    }
+
+    @Override
+    public Point sub(Point point) {
+        return sub(point.x(), point.y(), point.z());
+    }
+
+    @Contract(pure = true)
+    public BlockVec sub(BlockVec blockVec) {
+        return new BlockVec(blockX - blockVec.blockX, blockY - blockVec.blockY, blockZ - blockVec.blockZ);
+    }
+
+    @Override
+    public Point sub(double value) {
+        return sub(value, value, value);
+    }
+
+    @Contract(pure = true)
+    public BlockVec sub(int value) {
+        return new BlockVec(blockX - value, blockY - value, blockZ - value);
+    }
+
+    @Override
+    public Point mul(double x, double y, double z) {
+        return new Vec(blockX * x, blockY * y, blockZ * z);
+    }
+
+    @Contract(pure = true)
+    public BlockVec mul(int x, int y, int z) {
+        return new BlockVec(blockX * x, blockY * y, blockZ * z);
+    }
+
+    @Override
+    public Point mul(Point point) {
+        return mul(point.x(), point.y(), point.z());
+    }
+
+    @Contract(pure = true)
+    public BlockVec mul(BlockVec blockVec) {
+        return new BlockVec(blockX * blockVec.blockX, blockY * blockVec.blockY, blockZ * blockVec.blockZ);
+    }
+
+    @Override
+    public Point mul(double value) {
+        return mul(value, value, value);
+    }
+
+    @Contract(pure = true)
+    public BlockVec mul(int value) {
+        return mul(value, value, value);
+    }
+
+    @Override
+    public Point div(double x, double y, double z) {
+        return new Vec(blockX / x, blockY / y, blockZ / z);
+    }
+
+    @Contract(pure = true)
+    public BlockVec div(int x, int y, int z) {
+        return new BlockVec(blockX / x, blockY / y, blockZ / z);
+    }
+
+    @Override
+    public Point div(Point point) {
+        return div(point.x(), point.y(), point.z());
+    }
+
+    @Contract(pure = true)
+    public BlockVec div(BlockVec blockVec) {
+        return new BlockVec(blockX / blockVec.blockX, blockY / blockVec.blockY, blockZ / blockVec.blockZ);
+    }
+
+    @Override
+    public Point div(double value) {
+        return div(value, value, value);
+    }
+
+    @Contract(pure = true)
+    public BlockVec div(int value) {
+        return div(value, value, value);
+    }
+
+    @Override
+    @Contract(pure = true)
+    public BlockVec relative(BlockFace face) {
+        final Direction direction = face.toDirection();
+        return add(direction.normalX(), direction.normalY(), direction.normalZ());
+    }
+
+    @Contract(pure = true)
+    public BlockVec neg() {
+        return new BlockVec(-blockX, -blockY, -blockZ);
+    }
+
+    @Contract(pure = true)
+    public BlockVec abs() {
+        return new BlockVec(Math.abs(blockX), Math.abs(blockY), Math.abs(blockZ));
+    }
+
+    @Contract(pure = true)
+    public Point min(Point point) {
+        return new Vec(Math.min(blockX, point.x()), Math.min(blockY, point.y()), Math.min(blockZ, point.z()));
+    }
+
+    @Contract(pure = true)
+    public BlockVec min(BlockVec point) {
+        return new BlockVec(Math.min(blockX, point.blockX()), Math.min(blockY, point.blockY()), Math.min(blockZ, point.blockZ()));
+    }
+
+    @Contract(pure = true)
+    public BlockVec min(int x, int y, int z) {
+        return new BlockVec(Math.min(blockX, x), Math.min(blockY, y), Math.min(blockZ, z));
+    }
+
+    @Contract(pure = true)
+    public BlockVec min(int value) {
+        return new BlockVec(Math.min(blockX, value), Math.min(blockY, value), Math.min(blockZ, value));
+    }
+
+    @Contract(pure = true)
+    public Point max(Point point) {
+        return new Vec(Math.max(blockX, point.x()), Math.max(blockY, point.y()), Math.max(blockZ, point.z()));
+    }
+
+    @Contract(pure = true)
+    public BlockVec max(BlockVec point) {
+        return new BlockVec(Math.max(blockX, point.blockX()), Math.max(blockY, point.blockY()), Math.max(blockZ, point.blockZ()));
+    }
+
+    @Contract(pure = true)
+    public BlockVec max(int x, int y, int z) {
+        return new BlockVec(Math.max(blockX, x), Math.max(blockY, y), Math.max(blockZ, z));
+    }
+
+    @Contract(pure = true)
+    public BlockVec max(int value) {
+        return new BlockVec(Math.max(blockX, value), Math.max(blockY, value), Math.max(blockZ, value));
+    }
+
+    @Contract(pure = true)
+    public boolean samePoint(int x, int y, int z) {
+        return blockX == x && blockY == y && blockZ == z;
+    }
+
+    @Contract(pure = true)
+    public boolean samePoint(BlockVec blockVec) {
+        return blockX == blockVec.blockX && blockY == blockVec.blockY && blockZ == blockVec.blockZ;
+    }
+}
