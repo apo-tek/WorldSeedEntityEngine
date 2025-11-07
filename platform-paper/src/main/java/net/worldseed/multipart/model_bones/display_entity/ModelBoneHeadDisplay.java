@@ -1,17 +1,19 @@
 package net.worldseed.multipart.model_bones.display_entity;
 
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.ModelLoader;
 import net.worldseed.multipart.animations.BoneAnimation;
 import net.worldseed.multipart.model_bones.ModelBoneViewable;
 import net.worldseed.utils.Point;
 import net.worldseed.utils.Vec;
+import org.bukkit.World;
 
 public class ModelBoneHeadDisplay extends ModelBonePartDisplay implements ModelBoneViewable {
     private double headRotation;
 
-    public ModelBoneHeadDisplay(Point pivot, String name, Point rotation, GenericModel model, float scale) {
-        super(pivot, name, rotation, model, scale);
+    public ModelBoneHeadDisplay(WorldSeedEntityEngine plugin, World world, Point pivot, String name, Point rotation, GenericModel model, float scale) {
+        super(plugin, world, pivot, name, rotation, model, scale);
     }
 
     @Override

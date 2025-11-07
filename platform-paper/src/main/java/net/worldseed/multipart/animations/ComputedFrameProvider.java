@@ -1,7 +1,7 @@
 package net.worldseed.multipart.animations;
 
-import net.minestom.server.coordinate.Point;
-import net.minestom.server.coordinate.Vec;
+import net.worldseed.utils.Vec;
+import net.worldseed.utils.Point;
 import net.worldseed.multipart.ModelLoader;
 
 import java.util.LinkedHashMap;
@@ -14,7 +14,7 @@ public class ComputedFrameProvider implements FrameProvider {
     public ComputedFrameProvider(LinkedHashMap<Double, BoneAnimationImpl.PointInterpolation> transform, ModelLoader.AnimationType type, int length) {
         this.transform = transform;
         this.type = type;
-        this.lowestKey = transform.keySet().stream().min(Double::compareTo).orElse(0.0);
+        this.lowestKey = transform.keySet().stream().min(Double::compareTo).orElse(Double.valueOf(0.0));
     }
 
     @Override

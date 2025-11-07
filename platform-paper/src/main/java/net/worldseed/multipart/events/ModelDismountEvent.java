@@ -1,4 +1,4 @@
 package net.worldseed.multipart.events;
 
-public class ModelDismountEvent {
+public class ModelDismountEvent extends ModelEvent {
 }

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModelImpl;
 import net.worldseed.multipart.model_bones.ModelBone;
 import net.worldseed.multipart.model_bones.ModelBoneImpl;
@@ -77,13 +78,14 @@ public class EmoteModel extends GenericModelImpl {
 
     private final PlayerSkin skin;
 
-    public EmoteModel(PlayerSkin skin) {
+    public EmoteModel(WorldSeedEntityEngine plugin, PlayerSkin skin) {
+        super(plugin);
         this.skin = skin;
     }
 
     @Override
     protected void registerBoneSuppliers() {
-        boneSuppliers.put(_ -> true, (info) -> new ModelBoneEmote(info.pivot(), info.name(), info.rotation(), info.model(), BONE_TRANSLATIONS.get(info.name()), VERTICAL_OFFSETS.getOrDefault(info.name(), 0.0), skin));
+        boneSuppliers.put(_ -> true, (info) -> new ModelBoneEmote(this.plugin, getWorld(), info.pivot(), info.name(), info.rotation(), info.model(), BONE_TRANSLATIONS.get(info.name()), VERTICAL_OFFSETS.getOrDefault(info.name(), Double.valueOf(0)), skin));
     }
 
     @Override

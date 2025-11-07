@@ -1,8 +1,8 @@
 package net.worldseed.multipart.animations;
 
-import net.minestom.server.coordinate.Point;
-import net.minestom.server.coordinate.Vec;
 import net.worldseed.multipart.ModelLoader;
+import net.worldseed.utils.Point;
+import net.worldseed.utils.Vec;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,7 +24,7 @@ public class CachedFrameProvider implements FrameProvider {
         for (int i = 0; i <= ticks; i++) {
             var p = calculateTransform(i, t, type, animationTime);
             if (type == ModelLoader.AnimationType.TRANSLATION) p = p.div(4);
-            transform.put((short) i, p);
+            transform.put(Short.valueOf((short) i), p);
         }
 
         return transform;
@@ -46,7 +46,7 @@ public class CachedFrameProvider implements FrameProvider {
 
     @Override
     public Point getFrame(int tick) {
-        return interpolationCache.getOrDefault((short) tick, switch (type) {
+        return interpolationCache.getOrDefault(Short.valueOf((short) tick), switch (type) {
             case TRANSLATION, ROTATION -> Vec.ZERO;
             case SCALE -> Vec.ONE;
         });

@@ -1,6 +1,6 @@
 package net.worldseed.resourcepack.multipart.generator;
 
-import net.minestom.server.coordinate.Vec;
+import net.worldseed.utils.Vec;
 import net.worldseed.resourcepack.PackBuilder;
 
 import javax.json.*;

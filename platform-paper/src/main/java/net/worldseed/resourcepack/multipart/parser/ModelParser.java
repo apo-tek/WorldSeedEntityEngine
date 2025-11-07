@@ -1,7 +1,7 @@
 package net.worldseed.resourcepack.multipart.parser;
 
-import net.minestom.server.coordinate.Point;
-import net.minestom.server.coordinate.Vec;
+import net.worldseed.utils.Point;
+import net.worldseed.utils.Vec;
 import net.worldseed.multipart.ModelEngine;
 import net.worldseed.resourcepack.multipart.generator.ModelGenerator;
 import net.worldseed.resourcepack.multipart.generator.TextureGenerator;

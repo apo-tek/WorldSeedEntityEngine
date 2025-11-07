@@ -1,6 +1,8 @@
 package net.worldseed.multipart.model_bones.display_entity;
 
 import net.kyori.adventure.util.RGBLike;
+import net.minecraft.world.entity.EntityType;
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.Quaternion;
 import net.worldseed.multipart.model_bones.BoneEntity;
@@ -10,6 +12,8 @@ import net.worldseed.multipart.model_bones.ModelBoneViewable;
 import net.worldseed.utils.Point;
 import net.worldseed.utils.Pos;
 import net.worldseed.utils.Vec;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -23,11 +27,11 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
     private final List<GenericModel> attached = new ArrayList<>();
     private Entity baseStand;
 
-    public ModelBonePartDisplay(Point pivot, String name, Point rotation, GenericModel model, float scale) {
-        super(pivot, name, rotation, model, scale);
+    public ModelBonePartDisplay(WorldSeedEntityEngine plugin, World world, Point pivot, String name, Point rotation, GenericModel model, float scale) {
+        super(plugin, pivot, name, rotation, model, scale);
 
         if (this.offset != null) {
-            this.stand = new BoneEntity(EntityType.ITEM_DISPLAY, model, name);
+            this.stand = new BoneEntity(EntityType.ITEM_DISPLAY, ((CraftWorld) world).getHandle(), model, name);
 
             var itemMeta = (ItemDisplayMeta) this.stand.getEntityMeta();
 

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.portal.TeleportTransition;
 import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.animations.AnimationHandler;
 import net.worldseed.multipart.animations.AnimationHandlerImpl;
@@ -17,6 +18,8 @@ import net.worldseed.multipart.events.ModelInteractEvent;
 import net.worldseed.utils.PlayerSkin;
 import net.worldseed.utils.Pos;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -45,19 +48,20 @@ public abstract class EmotePlayer extends Monster implements Listener {
     private final AnimationHandler animationHandler;
     private int emoteIndex = 0;
 
-    public EmotePlayer(WorldSeedEntityEngine plugin, MinecraftServer server, Level level, Pos pos, PlayerSkin skin, EntityType<? extends Monster> entityType) {
-        super(entityType, level);
+    public EmotePlayer(WorldSeedEntityEngine plugin, World world, Pos pos, PlayerSkin skin, EntityType<? extends Monster> entityType) {
+        super(entityType, ((CraftWorld) world).getHandle());
 
         Entity self = this;
-        this.model = new EmoteModel(skin) {
+        this.model = new EmoteModel(plugin, skin) {
             @Override
             public void setPosition(Pos pos) {
                 super.setPosition(pos);
-                if (self.getInstance() != null) self.teleport(pos);
+                self.teleportTo(pos.x(), pos.y(), pos.z());
+                self.setRot(pos.yaw(), pos.pitch());
             }
         };
 
-        model.init(instance, pos);
+        model.init(world, pos);
 
         EntityDimensions dimensions = EntityDimensions.fixed(0.8f, 1.8f);
         try {
@@ -69,7 +73,9 @@ public abstract class EmotePlayer extends Monster implements Listener {
         this.setInvisible(true);
         this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.001f);
 
-        this.setInstance(instance, pos).join();
+        ((CraftWorld) world).getHandle().addFreshEntity(this);
+        this.setPos(pos.x(), pos.y(), pos.z());
+        this.setRot(pos.yaw(), pos.pitch());
 
         this.animationHandler = new AnimationHandlerImpl(plugin, model) {
             @Override
@@ -83,8 +89,8 @@ public abstract class EmotePlayer extends Monster implements Listener {
         this.model.draw();
     }
 
-    public EmotePlayer(Instance instance, Pos pos, PlayerSkin skin) {
-        this(instance, pos, skin, EntityType.ZOMBIE);
+    public EmotePlayer(WorldSeedEntityEngine plugin, World world, Pos pos, PlayerSkin skin) {
+        this(plugin, world, pos, skin, EntityType.ZOMBIE);
     }
 
     @EventHandler

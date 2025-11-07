@@ -128,7 +128,7 @@ public class AnimationHandlerImpl implements AnimationHandler {
 
         Map.Entry<Integer, ModelAnimation> currentTop = this.repeating.firstEntry();
 
-        this.repeating.remove(priority);
+        this.repeating.remove(Integer.valueOf(priority));
 
         Map.Entry<Integer, ModelAnimation> firstEntry = this.repeating.firstEntry();
 
@@ -160,7 +160,7 @@ public class AnimationHandlerImpl implements AnimationHandler {
             this.callbacks.get(animation).run(); //Run callback runnable
         }
 
-        int callbackTimer = this.callbackTimers.getOrDefault(animation, 0);
+        int callbackTimer = this.callbackTimers.getOrDefault(animation, Integer.valueOf(0));
 
         if (animation.equals(this.playingOnce) && direction == AnimationDirection.PAUSE && callbackTimer > 0) { //This animation was already playing, paused and not finished
             // Pause. Only call if we're not stopped
@@ -170,7 +170,7 @@ public class AnimationHandlerImpl implements AnimationHandler {
             playingOnce = animation;
             this.callbacks.put(animation, cb);
             if (currentDirection != AnimationDirection.PAUSE)
-                this.callbackTimers.put(animation, modelAnimation.animationTime() - callbackTimer + 1);
+                this.callbackTimers.put(animation, Integer.valueOf(modelAnimation.animationTime() - callbackTimer + 1));
         } else if (direction != AnimationDirection.PAUSE) { //This animation was not playing, or it was in the same direction
             if (playingOnce != null) { //Stop current animation
                 this.animations.get(playingOnce).stop();
@@ -179,7 +179,7 @@ public class AnimationHandlerImpl implements AnimationHandler {
             playingOnce = animation;
 
             this.callbacks.put(animation, cb);
-            this.callbackTimers.put(animation, modelAnimation.animationTime());
+            this.callbackTimers.put(animation, Integer.valueOf(modelAnimation.animationTime()));
             modelAnimation.play(false);
 
             Set<String> animatedBones = modelAnimation.getAnimatedBones();
@@ -218,7 +218,7 @@ public class AnimationHandlerImpl implements AnimationHandler {
                     if (cb != null) cb.run(); //Run 'callback' runnable
                 } else {
                     if (modelAnimation.direction() != AnimationDirection.PAUSE) {
-                        callbackTimers.put(entry.getKey(), entry.getValue() - 1); //Countdown 1 tick until it reaches 0 during playOnce animation
+                        callbackTimers.put(entry.getKey(), Integer.valueOf(entry.getValue() - 1)); //Countdown 1 tick until it reaches 0 during playOnce animation
                     }
                 }
             }
@@ -260,7 +260,7 @@ public class AnimationHandlerImpl implements AnimationHandler {
     public Map<String, Integer> animationPriorities() {
         return new HashMap<>() {{
             for (Entry<String, ModelAnimation> entry : animations.entrySet()) {
-                put(entry.getKey(), entry.getValue().priority());
+                put(entry.getKey(), Integer.valueOf(entry.getValue().priority()));
             }
         }};
     }

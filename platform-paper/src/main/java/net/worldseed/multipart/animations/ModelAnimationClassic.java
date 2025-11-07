@@ -64,7 +64,7 @@ public class ModelAnimationClassic implements ModelAnimation {
     @Override
     public void play(boolean resume) {
         if (resume) {
-            Optional<Short> tick = boneAnimations.stream().filter(BoneAnimation::isPlaying).findFirst().map(BoneAnimation::getTick);
+            Optional<Short> tick = boneAnimations.stream().filter(BoneAnimation::isPlaying).findFirst().map(t -> Short.valueOf(t.getTick()));
             if (tick.isPresent()) {
                 boneAnimations.forEach(boneAnimation -> boneAnimation.resume(tick.get()));
                 return;

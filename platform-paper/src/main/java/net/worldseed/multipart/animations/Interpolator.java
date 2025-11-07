@@ -1,8 +1,8 @@
 package net.worldseed.multipart.animations;
 
-import net.minestom.server.coordinate.Point;
-import net.minestom.server.coordinate.Vec;
 import net.worldseed.multipart.Quaternion;
+import net.worldseed.utils.Point;
+import net.worldseed.utils.Vec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;

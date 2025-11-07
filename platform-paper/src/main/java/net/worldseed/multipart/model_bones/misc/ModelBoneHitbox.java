@@ -2,6 +2,7 @@ package net.worldseed.multipart.model_bones.misc;
 
 import com.google.gson.JsonArray;
 import net.kyori.adventure.util.RGBLike;
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.animations.BoneAnimation;
 import net.worldseed.multipart.model_bones.BoneEntity;
@@ -28,8 +29,8 @@ public class ModelBoneHitbox extends ModelBoneImpl implements HitboxBone {
     private final Point orgPivot;
     private Task positionTask;
 
-    public ModelBoneHitbox(Point pivot, String name, Point rotation, GenericModel model, Point newOffset, double sizeX, double sizeY, JsonArray cubes, boolean parent, float scale) {
-        super(pivot, name, rotation, model, scale);
+    public ModelBoneHitbox(WorldSeedEntityEngine plugin, Point pivot, String name, Point rotation, GenericModel model, Point newOffset, double sizeX, double sizeY, JsonArray cubes, boolean parent, float scale) {
+        super(plugin, pivot, name, rotation, model, scale);
 
         this.orgPivot = pivot;
         this.cubes = cubes;

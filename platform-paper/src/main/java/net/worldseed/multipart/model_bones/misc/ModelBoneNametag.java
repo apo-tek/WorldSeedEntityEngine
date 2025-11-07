@@ -1,9 +1,11 @@
 package net.worldseed.multipart.model_bones.misc;
 
 import net.kyori.adventure.util.RGBLike;
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.model_bones.ModelBoneImpl;
 import net.worldseed.multipart.model_bones.bone_types.NametagBone;
+import net.worldseed.utils.PaperConverter;
 import net.worldseed.utils.Point;
 import net.worldseed.utils.Pos;
 import net.worldseed.utils.Vec;
@@ -15,18 +17,23 @@ import java.util.List;
 public class ModelBoneNametag extends ModelBoneImpl implements NametagBone {
     private Entity bound;
 
-    public ModelBoneNametag(Point pivot, String name, Point rotation, GenericModel model, float scale) {
-        super(pivot, name, rotation, model, scale);
+    public ModelBoneNametag(WorldSeedEntityEngine plugin, Point pivot, String name, Point rotation,
+                            GenericModel model, float scale) {
+        super(plugin, pivot, name, rotation, model, scale);
     }
 
     @Override
     public void addViewer(Player player) {
-        if (this.bound != null) this.bound.addViewer(player);
+        if (this.bound != null) {
+            player.showEntity(this.plugin, bound);
+        }
     }
 
     @Override
     public void removeViewer(Player player) {
-        if (this.bound != null) this.bound.removeViewer(player);
+        if (this.bound != null) {
+            player.hideEntity(this.plugin, bound);
+        }
     }
 
     @Override
@@ -79,7 +86,7 @@ public class ModelBoneNametag extends ModelBoneImpl implements NametagBone {
 
     public void draw() {
         if (this.offset == null || bound == null) return;
-        bound.teleport(calculatePosition());
+        bound.teleport(PaperConverter.posToLocation(bound.getWorld(), calculatePosition()));
     }
 
     @Override

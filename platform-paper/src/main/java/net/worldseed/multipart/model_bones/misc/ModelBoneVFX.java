@@ -1,6 +1,7 @@
 package net.worldseed.multipart.model_bones.misc;
 
 import net.kyori.adventure.util.RGBLike;
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.model_bones.ModelBone;
 import net.worldseed.multipart.model_bones.ModelBoneImpl;
@@ -19,8 +20,8 @@ public class ModelBoneVFX extends ModelBoneImpl implements VFXBone {
     private final List<GenericModel> attached = new ArrayList<>();
     private Pos position = Pos.ZERO;
 
-    public ModelBoneVFX(Point pivot, String name, Point rotation, GenericModel model, float scale) {
-        super(pivot, name, rotation, model, scale);
+    public ModelBoneVFX(WorldSeedEntityEngine plugin, Point pivot, String name, Point rotation, GenericModel model, float scale) {
+        super(plugin, pivot, name, rotation, model, scale);
         this.stand = null;
     }
 

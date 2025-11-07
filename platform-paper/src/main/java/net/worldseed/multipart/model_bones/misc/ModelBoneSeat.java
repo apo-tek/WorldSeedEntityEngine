@@ -3,6 +3,7 @@ package net.worldseed.multipart.model_bones.misc;
 import net.kyori.adventure.util.RGBLike;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.portal.TeleportTransition;
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.Quaternion;
 import net.worldseed.multipart.model_bones.BoneEntity;
@@ -24,11 +25,11 @@ import java.util.concurrent.CompletableFuture;
 
 public class ModelBoneSeat extends ModelBoneImpl implements RideableBone {
 
-    public ModelBoneSeat(Point pivot, String name, Point rotation, GenericModel model, float scale) {
-        super(pivot, name, rotation, model, scale);
+    public ModelBoneSeat(WorldSeedEntityEngine plugin, World world, Point pivot, String name, Point rotation, GenericModel model, float scale) {
+        super(plugin, pivot, name, rotation, model, scale);
 
         if (this.offset != null) {
-            this.stand = new BoneEntity(EntityType.ARMOR_STAND, model, name);
+            this.stand = new BoneEntity(EntityType.ARMOR_STAND, ((CraftWorld) world).getHandle(), model, name);
             this.stand.editEntityMeta(ArmorStandMeta.class, meta ->
                     meta.setMarker(true)
             );

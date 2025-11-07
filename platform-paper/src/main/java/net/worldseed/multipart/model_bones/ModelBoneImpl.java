@@ -1,5 +1,6 @@
 package net.worldseed.multipart.model_bones;
 
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.*;
 import net.worldseed.multipart.animations.BoneAnimation;
 import net.worldseed.utils.Point;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class ModelBoneImpl implements ModelBone {
+    protected final WorldSeedEntityEngine plugin;
     protected final Map<String, ItemStack> items;
     protected final Point pivot;
     protected final String name;
@@ -28,7 +30,8 @@ public abstract class ModelBoneImpl implements ModelBone {
     protected BoneEntity stand;
     private ModelBone parent;
 
-    public ModelBoneImpl(Point pivot, String name, Point rotation, GenericModel model, float scale) {
+    public ModelBoneImpl(WorldSeedEntityEngine plugin, Point pivot, String name, Point rotation, GenericModel model, float scale) {
+        this.plugin = plugin;
         this.name = name;
         this.rotation = rotation;
         this.model = model;

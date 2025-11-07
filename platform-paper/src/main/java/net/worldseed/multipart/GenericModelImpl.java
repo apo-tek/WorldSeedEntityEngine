@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.util.RGBLike;
 import net.minecraft.world.phys.Vec3;
+import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.animations.AnimationHandlerImpl;
 import net.worldseed.multipart.events.AnimationCompleteEvent;
 import net.worldseed.multipart.events.ModelEvent;
@@ -28,6 +29,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -39,27 +41,30 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class GenericModelImpl implements GenericModel {
+    protected final WorldSeedEntityEngine plugin;
     protected final LinkedHashMap<String, ModelBone> parts = new LinkedHashMap<>();
     protected final Set<ModelBoneImpl> viewableBones = new LinkedHashSet<>();
 
     private final Collection<ModelBone> additionalBones = new ArrayList<>();
     private final Set<Player> viewers = ConcurrentHashMap.newKeySet();
-    private final EventNode<@NonNull ModelEvent> eventNode;
     private final Map<Player, RGBLike> playerGlowColors = Collections.synchronizedMap(new WeakHashMap<>());
     private Pos position;
     private double globalRotation;
     private double pitch;
 
-    protected record ModelBoneInfo(String name, Point pivot, Point rotation, JsonArray cubes, GenericModel model,
+    protected record ModelBoneInfo(String name, World world, Point pivot, Point rotation, JsonArray cubes, GenericModel model,
                                    float scale) {
     }
 
     protected final Map<Predicate<String>, Function<ModelBoneInfo, @Nullable ModelBone>> boneSuppliers = new LinkedHashMap<>();
-    Function<ModelBoneInfo, ModelBone> defaultBoneSupplier = (info) -> new ModelBonePartDisplay(info.pivot, info.name, info.rotation, info.model, info.scale);
+    Function<ModelBoneInfo, ModelBone> defaultBoneSupplier;
 
     private static final EventFilter<@NonNull ModelEvent, @NonNull GenericModel> MODEL_FILTER = EventFilter.from(ModelEvent.class, GenericModel.class, ModelEvent::model);
 
-    public GenericModelImpl() {
+    public GenericModelImpl(WorldSeedEntityEngine plugin) {
+        this.plugin = plugin;
+        this.defaultBoneSupplier = (info) -> new ModelBonePartDisplay(plugin, info.world, info.pivot, info.name, info.rotation, info.model, info.scale);
+
         final ServerProcess process = MinecraftServer.process();
         if (process != null) {
             this.eventNode = process.eventHandler().map(this, MODEL_FILTER);
@@ -68,12 +73,9 @@ public abstract class GenericModelImpl implements GenericModel {
             this.eventNode = null;
         }
 
-        registerBoneSuppliers();
-    }
 
-    @Override
-    public @NotNull EventNode<@NonNull ModelEvent> eventNode() {
-        return eventNode;
+
+        registerBoneSuppliers(plugin);
     }
 
     @Override
@@ -149,7 +151,7 @@ public abstract class GenericModelImpl implements GenericModel {
         }
     }
 
-    protected void registerBoneSuppliers() {
+    protected void registerBoneSuppliers(WorldSeedEntityEngine plugin) {
         boneSuppliers.put(name -> name.equals("nametag") || name.equals("tag_name"), (info) -> new ModelBoneNametag(info.pivot, info.name, info.rotation, info.model, info.scale));
         boneSuppliers.put(name -> name.contains("hitbox"), (info) -> {
             if (info.cubes.isEmpty()) return null;
@@ -162,11 +164,11 @@ public abstract class GenericModelImpl implements GenericModel {
             Point pivotPoint = new Vec(p.get(0).getAsFloat(), p.get(1).getAsFloat(), p.get(2).getAsFloat());
 
             var newOffset = pivotPoint.mul(-1, 1, 1);
-            return new ModelBoneHitbox(info.pivot, info.name, info.rotation, info.model, newOffset, sizePoint.x(), sizePoint.y(), info.cubes, true, info.scale);
+            return new ModelBoneHitbox(plugin, info.pivot, info.name, info.rotation, info.model, newOffset, sizePoint.x(), sizePoint.y(), info.cubes, true, info.scale);
         });
-        boneSuppliers.put(name -> name.contains("vfx"), (info) -> new ModelBoneVFX(info.pivot, info.name, info.rotation, info.model, info.scale));
-        boneSuppliers.put(name -> name.contains("seat"), (info) -> new ModelBoneSeat(info.pivot, info.name, info.rotation, info.model, info.scale));
-        boneSuppliers.put(name -> name.equals("head"), (info) -> new ModelBoneHeadDisplay(info.pivot, info.name, info.rotation, info.model, info.scale));
+        boneSuppliers.put(name -> name.contains("vfx"), (info) -> new ModelBoneVFX(plugin, info.pivot, info.name, info.rotation, info.model, info.scale));
+        boneSuppliers.put(name -> name.contains("seat"), (info) -> new ModelBoneSeat(plugin, info.world, info.pivot, info.name, info.rotation, info.model, info.scale));
+        boneSuppliers.put(name -> name.equals("head"), (info) -> new ModelBoneHeadDisplay(plugin, info.world, info.pivot, info.name, info.rotation, info.model, info.scale));
     }
 
     protected void loadBones(JsonObject loadedModel, float scale) {

@@ -1,4 +1,4 @@
 package net.worldseed.multipart.events;
 
-public class ModelDamageEvent {
+public class ModelDamageEvent extends ModelEvent {
 }
