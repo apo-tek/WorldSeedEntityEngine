@@ -152,7 +152,7 @@ public abstract class GenericModelImpl implements GenericModel {
     }
 
     protected void registerBoneSuppliers(WorldSeedEntityEngine plugin) {
-        boneSuppliers.put(name -> name.equals("nametag") || name.equals("tag_name"), (info) -> new ModelBoneNametag(info.pivot, info.name, info.rotation, info.model, info.scale));
+        boneSuppliers.put(name -> name.equals("nametag") || name.equals("tag_name"), (info) -> new ModelBoneNametag(plugin, info.pivot, info.name, info.rotation, info.model, info.scale));
         boneSuppliers.put(name -> name.contains("hitbox"), (info) -> {
             if (info.cubes.isEmpty()) return null;
 
@@ -164,7 +164,7 @@ public abstract class GenericModelImpl implements GenericModel {
             Point pivotPoint = new Vec(p.get(0).getAsFloat(), p.get(1).getAsFloat(), p.get(2).getAsFloat());
 
             var newOffset = pivotPoint.mul(-1, 1, 1);
-            return new ModelBoneHitbox(plugin, info.pivot, info.name, info.rotation, info.model, newOffset, sizePoint.x(), sizePoint.y(), info.cubes, true, info.scale);
+            return new ModelBoneHitbox(plugin, info.world, info.pivot, info.name, info.rotation, info.model, newOffset, sizePoint.x(), sizePoint.y(), info.cubes, true, info.scale);
         });
         boneSuppliers.put(name -> name.contains("vfx"), (info) -> new ModelBoneVFX(plugin, info.pivot, info.name, info.rotation, info.model, info.scale));
         boneSuppliers.put(name -> name.contains("seat"), (info) -> new ModelBoneSeat(plugin, info.world, info.pivot, info.name, info.rotation, info.model, info.scale));

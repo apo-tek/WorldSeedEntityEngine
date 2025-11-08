@@ -1,7 +1,10 @@
 package net.worldseed.multipart.model_bones.display_entity;
 
 import net.kyori.adventure.util.RGBLike;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemStack;
 import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.Quaternion;
@@ -9,13 +12,19 @@ import net.worldseed.multipart.model_bones.BoneEntity;
 import net.worldseed.multipart.model_bones.ModelBone;
 import net.worldseed.multipart.model_bones.ModelBoneImpl;
 import net.worldseed.multipart.model_bones.ModelBoneViewable;
+import net.worldseed.utils.PaperConverter;
 import net.worldseed.utils.Point;
 import net.worldseed.utils.Pos;
 import net.worldseed.utils.Vec;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,29 +41,27 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
 
         if (this.offset != null) {
             this.stand = new BoneEntity(EntityType.ITEM_DISPLAY, ((CraftWorld) world).getHandle(), model, name);
-
-            var itemMeta = (ItemDisplayMeta) this.stand.getEntityMeta();
-
-            itemMeta.setScale(new Vec(scale, scale, scale));
-            itemMeta.setDisplayContext(ItemDisplayMeta.DisplayContext.FIXED);
-            itemMeta.setTransformationInterpolationDuration(2);
-            itemMeta.setPosRotInterpolationDuration(2);
-            itemMeta.setViewRange(1000);
+            this.stand.getEntityData().set(DATA_SCALE_ID, new Vector3f(scale, scale, scale));
+            this.stand.getEntityData().set(DATA_ITEM_DISPLAY_ID, ItemDisplayContext.FIXED.getId());
+            this.stand.getEntityData().set(DATA_TRANSFORMATION_INTERPOLATION_DURATION_ID, 2);
+            this.stand.getEntityData().set(DATA_POS_ROT_INTERPOLATION_DURATION_ID, 2);
+            this.stand.getEntityData().set(DATA_VIEW_RANGE_ID, 1000f);
         }
     }
 
     @Override
     public void addViewer(Player player) {
-        if (this.stand != null) this.stand.addViewer(player);
-        if (this.baseStand != null) this.baseStand.addViewer(player);
+        if (player != null) {
+            player.showEntity(this.plugin, this.stand.getBukkitEntity());
+            player.showEntity(this.plugin, this.baseStand);
+        }
         this.attached.forEach(model -> model.addViewer(player));
     }
 
     @Override
     public void removeGlowing() {
         if (this.stand != null) {
-            var meta = (ItemDisplayMeta) this.stand.getEntityMeta();
-            meta.setHasGlowingEffect(false);
+            this.stand.getBukkitEntity().setGlowing(false);
         }
 
         this.attached.forEach(GenericModel::removeGlowing);
@@ -68,9 +75,8 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
             rgb |= color.green() << 8;
             rgb |= color.blue();
 
-            var meta = (ItemDisplayMeta) this.stand.getEntityMeta();
-            meta.setHasGlowingEffect(true);
-            meta.setGlowColorOverride(rgb);
+            this.stand.getEntityData().set(DATA_GLOW_COLOR_OVERRIDE_ID, rgb);
+            this.stand.getBukkitEntity().setGlowing(true);
         }
 
         this.attached.forEach(model -> model.setGlowing(color));
@@ -81,17 +87,11 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
         if (this.stand == null)
             return;
 
-        EntityMetaDataPacket oldMetadataPacket = this.stand.getMetadataPacket();
-        Map<Integer, Metadata.Entry<?>> oldEntries = oldMetadataPacket.entries();
-        byte previousFlags = oldEntries.containsKey(0)
-                ? (byte) oldEntries.get(0).value()
-                : 0;
-
-        Map<Integer, Metadata.Entry<?>> entries = new HashMap<>(oldMetadataPacket.entries());
-        entries.put(0, Metadata.Byte((byte) (previousFlags & ~0x40)));
-        entries.put(22, Metadata.VarInt(-1));
-
-        player.sendPacket(new EntityMetaDataPacket(this.stand.getEntityId(), entries));
+        int id = this.stand.getId();
+        this.stand.getBukkitEntity().setGlowing(false);
+        this.stand.getEntityData().set(DATA_GLOW_COLOR_OVERRIDE_ID, -1);
+        net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket dataPacket = new ClientboundSetEntityDataPacket(id, this.stand.getEntityData().packAll());
+        ((CraftPlayer) player).getHandle().connection.send(dataPacket);
         this.attached.forEach(model -> model.removeGlowing(player));
     }
 
@@ -105,17 +105,12 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
         rgb |= color.green() << 8;
         rgb |= color.blue();
 
-        EntityMetaDataPacket oldMetadataPacket = this.stand.getMetadataPacket();
-        Map<Integer, Metadata.Entry<?>> oldEntries = oldMetadataPacket.entries();
-        byte previousFlags = oldEntries.containsKey(0)
-                ? (byte) oldEntries.get(0).value()
-                : 0;
-
-        Map<Integer, Metadata.Entry<?>> entries = new HashMap<>(oldEntries);
-        entries.put(0, Metadata.Byte((byte) (previousFlags | 0x40)));
-        entries.put(22, Metadata.VarInt(rgb));
-
-        player.sendPacket(new EntityMetaDataPacket(this.stand.getEntityId(), entries));
+        int id = this.stand.getId();
+        this.stand.getBukkitEntity().setGlowing(true);
+        this.stand.getEntityData().set(DATA_GLOW_COLOR_OVERRIDE_ID, rgb);
+        net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket dataPacket = new ClientboundSetEntityDataPacket(id, this.stand.getEntityData().packAll());
+        ((CraftPlayer) player).getHandle().connection.send(dataPacket);
+        this.attached.forEach(model -> model.removeGlowing(player));
         this.attached.forEach(model -> model.setGlowing(player, color));
     }
 
@@ -139,14 +134,16 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
         if (this.stand != null) {
             var correctYaw = (180 + yaw + 360) % 360;
             var correctPitch = (pitch + 360) % 360;
-            this.stand.setView((float) correctYaw, (float) correctPitch);
+            this.stand.setRot((float) correctYaw, (float) correctPitch);
         }
     }
 
     @Override
     public void removeViewer(Player player) {
-        if (this.stand != null) this.stand.removeViewer(player);
-        if (this.baseStand != null) this.baseStand.removeViewer(player);
+        if (player != null) {
+            player.hideEntity(this.plugin, this.stand.getBukkitEntity());
+            player.hideEntity(this.plugin, this.baseStand);
+        }
         this.attached.forEach(model -> model.removeViewer(player));
     }
 
@@ -183,7 +180,7 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
 
     @Override
     public void teleport(Point position) {
-        if (this.baseStand != null) this.baseStand.teleport(new Pos(position));
+        if (this.baseStand != null) this.baseStand.teleport(new Location(this.baseStand.getWorld(), position.x(), position.y(), position.z()));
     }
 
     public void draw() {
@@ -194,53 +191,49 @@ public class ModelBonePartDisplay extends ModelBoneImpl implements ModelBoneView
             var position = calculatePositionInternal();
             var scale = calculateScale();
 
-            if (this.stand.getEntityMeta() instanceof ItemDisplayMeta meta) {
-                Quaternion q = calculateFinalAngle(new Quaternion(getPropagatedRotation()));
-
-                meta.setNotifyAboutChanges(false);
-                meta.setTransformationInterpolationStartDelta(0);
-                meta.setScale(new Vec(scale.x() * this.scale, scale.y() * this.scale, scale.z() * this.scale));
-                meta.setRightRotation(new float[]{(float) q.x(), (float) q.y(), (float) q.z(), (float) q.w()});
-                meta.setTranslation(position);
-                meta.setNotifyAboutChanges(true);
-
-                attached.forEach(model -> {
-                    model.setPosition(this.model.getPosition().add(calculateGlobalRotation(position)));
-                    model.setGlobalRotation(-q.toEuler().x() + this.model.getGlobalRotation());
-                    model.draw();
-                });
-            }
+            Quaternion q = calculateFinalAngle(new Quaternion(getPropagatedRotation()));
+            this.stand.getEntityData().set(DATA_TRANSFORMATION_INTERPOLATION_START_DELTA_TICKS_ID, 0);
+            this.stand.getEntityData().set(DATA_SCALE_ID, new Vector3f((float) (scale.x() * this.scale), (float) (scale.y() * this.scale), (float) (scale.z() * this.scale)));
+            this.stand.getEntityData().set(DATA_RIGHT_ROTATION_ID, new Quaternionf(q.x(), q.y(), q.z(), q.w()));
+            this.stand.getEntityData().set(DATA_TRANSLATION_ID, new Vector3f((float) position.x(), (float) position.y(), (float) position.z()));
+            attached.forEach(model -> {
+                model.setPosition(this.model.getPosition().add(calculateGlobalRotation(position)));
+                model.setGlobalRotation(-q.toEuler().x() + this.model.getGlobalRotation());
+                model.draw();
+            });
         }
     }
 
     @Override
-    public CompletableFuture<Void> spawn(Instance instance, Pos position) {
+    public CompletableFuture<Void> spawn(World world, Pos position) {
         var correctLocation = (180 + this.model.getGlobalRotation() + 360) % 360;
-        return super.spawn(instance, new Pos(position).withYaw((float) correctLocation)).whenCompleteAsync((_, e) -> {
+        return super.spawn(world, new Pos(position).withYaw((float) correctLocation)).whenCompleteAsync((_, e) -> {
             if (e != null) {
                 e.printStackTrace();
                 return;
             }
 
             if (!(this.getParent() instanceof ModelBonePartDisplay)) {
-                this.baseStand = model.generateRoot();
-                assert this.baseStand != null;
-                this.baseStand.setInstance(instance, position).join();
+                BoneEntity baseBone = model.generateRoot();
+                assert baseBone != null;
+                this.baseStand = baseBone.getBukkitEntity();
+                ((CraftWorld) world).getHandle().addFreshEntity(baseBone);
+                this.baseStand.teleport(PaperConverter.posToLocation(world, position));
             }
         });
     }
 
     @Override
     public void setState(String state) {
-        if (this.stand != null && this.stand.getEntityMeta() instanceof ItemDisplayMeta meta) {
+        if (this.stand != null && this.stand.getType() == EntityType.ITEM_DISPLAY) {
             if (state.equals("invisible")) {
-                meta.setItemStack(ItemStack.AIR);
+                this.stand.getEntityData().set(DATA_ITEM_STACK_ID, ItemStack.EMPTY);
                 return;
             }
 
             var item = this.items.get(state);
             if (item != null) {
-                meta.setItemStack(item);
+                this.stand.getEntityData().set(DATA_ITEM_STACK_ID, CraftItemStack.asNMSCopy(item));
             }
         }
     }

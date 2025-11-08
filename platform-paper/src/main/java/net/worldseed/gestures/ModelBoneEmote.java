@@ -38,24 +38,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ModelBoneEmote extends ModelBoneImpl implements ModelBoneViewable {
-    private static final EntityDataAccessor<Float> DATA_VIEW_RANGE_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Integer> DATA_TRANSFORMATION_INTERPOLATION_DURATION_ID = SynchedEntityData.defineId(
-            net.minecraft.world.entity.Display.class, EntityDataSerializers.INT
-    );
-    private static final EntityDataAccessor<Integer> DATA_TRANSFORMATION_INTERPOLATION_START_DELTA_TICKS_ID = SynchedEntityData.defineId(
-            net.minecraft.world.entity.Display.class, EntityDataSerializers.INT
-    );
-    private static final EntityDataAccessor<Vector3f> DATA_TRANSLATION_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.VECTOR3);
-    private static final EntityDataAccessor<Byte> DATA_ITEM_DISPLAY_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.ItemDisplay.class, EntityDataSerializers.BYTE);
-    private static final byte THIRD_PERSON_RIGHT_HAND = 2;
-    private static final EntityDataAccessor<ItemStack> DATA_ITEM_STACK_ID = SynchedEntityData.defineId(
-            net.minecraft.world.entity.Display.ItemDisplay.class, EntityDataSerializers.ITEM_STACK
-    );
-    private static final EntityDataAccessor<Quaternionf> DATA_LEFT_ROTATION_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.QUATERNION);
-    private static final EntityDataAccessor<Quaternionf> DATA_RIGHT_ROTATION_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.QUATERNION);
-    private static final EntityDataAccessor<Vector3f> DATA_SCALE_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.VECTOR3);
-
-
     private final WorldSeedEntityEngine plugin;
     private final Double verticalOffset;
 
@@ -71,7 +53,7 @@ public class ModelBoneEmote extends ModelBoneImpl implements ModelBoneViewable {
             this.stand.getEntityData().set(DATA_TRANSFORMATION_INTERPOLATION_DURATION_ID, 2);
             this.stand.getEntityData().set(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID, 2);
             this.stand.getEntityData().set(DATA_TRANSLATION_ID, new Vector3f(0, translation, 0));
-            this.stand.getEntityData().set(DATA_ITEM_DISPLAY_ID, THIRD_PERSON_RIGHT_HAND);
+            this.stand.getEntityData().set(DATA_ITEM_DISPLAY_ID, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND.getId());
             net.minecraft.world.item.ItemStack itemStack = new net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD);
             PropertyMap propertyMap = new PropertyMap();
             propertyMap.put("textures", new Property("textures", skin.textures(), skin.signature()));

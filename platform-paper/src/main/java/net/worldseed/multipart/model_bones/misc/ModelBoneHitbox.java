@@ -2,6 +2,10 @@ package net.worldseed.multipart.model_bones.misc;
 
 import com.google.gson.JsonArray;
 import net.kyori.adventure.util.RGBLike;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.phys.Vec3;
 import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
 import net.worldseed.multipart.animations.BoneAnimation;
@@ -11,25 +15,29 @@ import net.worldseed.multipart.model_bones.ModelBoneImpl;
 import net.worldseed.multipart.model_bones.bone_types.HitboxBone;
 import net.worldseed.utils.Point;
 import net.worldseed.utils.Pos;
+import net.worldseed.utils.RelativeFlags;
 import net.worldseed.utils.Vec;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ModelBoneHitbox extends ModelBoneImpl implements HitboxBone {
     private static final int INTERPOLATE_TICKS = 2;
-    private static final Tag<String> WSEE = Tag.String("WSEE");
     private final JsonArray cubes;
     private final Collection<ModelBone> illegitimateChildren = new ConcurrentLinkedDeque<>();
     private final Point orgPivot;
     private Task positionTask;
 
-    public ModelBoneHitbox(WorldSeedEntityEngine plugin, Point pivot, String name, Point rotation, GenericModel model, Point newOffset, double sizeX, double sizeY, JsonArray cubes, boolean parent, float scale) {
+    public ModelBoneHitbox(WorldSeedEntityEngine plugin, World world, Point pivot, String name, Point rotation, GenericModel model, Point newOffset, double sizeX, double sizeY, JsonArray cubes, boolean parent, float scale) {
         super(plugin, pivot, name, rotation, model, scale);
 
         this.orgPivot = pivot;
@@ -40,13 +48,15 @@ public class ModelBoneHitbox extends ModelBoneImpl implements HitboxBone {
             this.offset = null;
         } else {
             if (this.offset != null) {
-                this.stand = new BoneEntity(EntityType.INTERACTION, model, name) {
+                this.stand = new BoneEntity(EntityType.INTERACTION, ((CraftWorld) world).getHandle(), model, name) {
                     @Override
                     public void updateNewViewer(@NotNull Player player) {
                         super.updateNewViewer(player);
-
-                        EntityTeleportPacket packet = new EntityTeleportPacket(this.getEntityId(), this.position, Vec.ZERO, 0, false);
-                        player.getPlayerConnection().sendPacket(packet);
+                        Vec3 position = new Vec3(pivot.x(), pivot.y(), pivot.z());
+                        Pos rot = rotation.asPos();
+                        PositionMoveRotation change = new PositionMoveRotation(position, Vec3.ZERO, rot.yaw(), rot.pitch());
+                        net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket teleportEntityPacket = new ClientboundTeleportEntityPacket(this.getId(), change, Set.of(), false);
+                        ((CraftPlayer) player).getHandle().connection.send(teleportEntityPacket);
                     }
 
                     @Override
@@ -162,7 +172,7 @@ public class ModelBoneHitbox extends ModelBoneImpl implements HitboxBone {
                         if ((currentPos.y() + maxSize) > sizePoint.y())
                             currentPos = currentPos.withY(sizePoint.y() - maxSize);
 
-                        var created = new ModelBoneHitbox(pivotPos, name, boneRotation, genericModel, currentPos.add(newPoint), maxSize, maxSize, cubes, false, scale);
+                        var created = new ModelBoneHitbox(this.plugin, pivotPos, , name, boneRotation, genericModel, currentPos.add(newPoint), maxSize, maxSize, cubes, false, scale);
                         illegitimateChildren.add(created);
                     }
                 }

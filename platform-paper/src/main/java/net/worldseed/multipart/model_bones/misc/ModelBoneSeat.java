@@ -13,11 +13,13 @@ import net.worldseed.multipart.model_bones.bone_types.RideableBone;
 import net.worldseed.utils.Point;
 import net.worldseed.utils.Pos;
 import net.worldseed.utils.Vec;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 import java.util.Set;
@@ -30,23 +32,38 @@ public class ModelBoneSeat extends ModelBoneImpl implements RideableBone {
 
         if (this.offset != null) {
             this.stand = new BoneEntity(EntityType.ARMOR_STAND, ((CraftWorld) world).getHandle(), model, name);
-            this.stand.editEntityMeta(ArmorStandMeta.class, meta ->
-                    meta.setMarker(true)
-            );
+            this.stand.getBukkitEntity();
 
-            this.stand.setTag(Tag.String("WSEE"), "seat");
+            this.stand.getEntityData().set(net.minecraft.world.entity.decoration.ArmorStand.DATA_CLIENT_FLAGS,
+                    this.setBit(this.stand.getEntityData().get(net.minecraft.world.entity.decoration.ArmorStand.DATA_CLIENT_FLAGS),
+                            16, true));
+            this.stand.getBukkitEntity().getPersistentDataContainer().set(WorldSeedEntityEngine.getNamespacedKey(), PersistentDataType.STRING, "seat");
             stand.setInvisible(true);
         }
     }
 
+    private byte setBit(byte oldBit, int offset, boolean value) {
+        if (value) {
+            oldBit = (byte)(oldBit | offset);
+        } else {
+            oldBit = (byte)(oldBit & ~offset);
+        }
+
+        return oldBit;
+    }
+
     @Override
     public void addViewer(Player player) {
-        if (this.stand != null) this.stand.addViewer(player);
+        if (player != null) {
+            player.showEntity(this.plugin, this.stand.getBukkitEntity());
+        }
     }
 
     @Override
     public void removeViewer(Player player) {
-        if (this.stand != null) this.stand.removeViewer(player);
+        if (player != null) {
+            player.hideEntity(this.plugin, this.stand.getBukkitEntity());
+        }
     }
 
     @Override
