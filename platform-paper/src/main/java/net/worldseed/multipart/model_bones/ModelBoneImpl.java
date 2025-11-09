@@ -4,6 +4,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.Interaction;
 import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.*;
 import net.worldseed.multipart.animations.BoneAnimation;
@@ -41,6 +42,10 @@ public abstract class ModelBoneImpl implements ModelBone {
     protected static final EntityDataAccessor<Quaternionf> DATA_RIGHT_ROTATION_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.QUATERNION);
     protected static final EntityDataAccessor<Vector3f> DATA_SCALE_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.VECTOR3);
     protected static final EntityDataAccessor<Integer> DATA_GLOW_COLOR_OVERRIDE_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Display.class, EntityDataSerializers.INT);
+
+    protected static final EntityDataAccessor<Float> DATA_WIDTH_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Interaction.class, EntityDataSerializers.FLOAT);
+    protected static final EntityDataAccessor<Float> DATA_HEIGHT_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Interaction.class, EntityDataSerializers.FLOAT);
+    protected static final EntityDataAccessor<Boolean> DATA_RESPONSE_ID = SynchedEntityData.defineId(net.minecraft.world.entity.Interaction.class, EntityDataSerializers.BOOLEAN);
 
     public enum ItemDisplayContext {
         NONE((byte) 0),

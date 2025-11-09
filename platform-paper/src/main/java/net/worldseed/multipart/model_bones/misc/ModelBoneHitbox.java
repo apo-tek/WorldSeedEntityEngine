@@ -5,6 +5,7 @@ import net.kyori.adventure.util.RGBLike;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.worldseed.WorldSeedEntityEngine;
 import net.worldseed.multipart.GenericModel;
@@ -21,6 +22,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -65,14 +67,19 @@ public class ModelBoneHitbox extends ModelBoneImpl implements HitboxBone {
                     }
                 };
 
-                this.stand.setTag(WSEE, "hitbox");
+                this.stand.getBukkitEntity().getPersistentDataContainer().set(WorldSeedEntityEngine.getNamespacedKey(), PersistentDataType.STRING, "hitbox");
                 this.offset = newOffset;
 
-                InteractionMeta meta = (InteractionMeta) this.stand.getEntityMeta();
-                meta.setHeight((float) (sizeY / 4f) * scale);
-                meta.setWidth((float) (sizeX / 4f) * scale);
+                if (this.stand instanceof net.minecraft.world.entity.Interaction interaction) {
 
-                this.stand.setBoundingBox(sizeX / 4f * scale, sizeY / 4f * scale, sizeX / 4f * scale);
+                }
+
+                this.stand.getEntityData().set(DATA_WIDTH_ID, (float) (sizeX / 4f) * scale);
+                this.stand.getEntityData().set(DATA_HEIGHT_ID, (float) (sizeY / 4f) * scale);
+                double boxSizeX = sizeX / 4f * scale;
+                double boxSizeY = sizeY / 4f * scale;
+                double boxSizeZ = sizeX / 4f * scale;
+                this.stand.setBoundingBox(new AABB());
             }
         }
     }
